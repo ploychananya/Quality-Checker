@@ -28,11 +28,13 @@ namespace Qualıty_Checker
                     string filePath = qualitys[1];
                     while (index < qualitySize)
                     {
-                        analyze.Method(qualitys[index]); //print each analyze quality
+                        analyze.Method(filePath,qualitys[index]); //print each analyze quality
                         index++;
                     }
-                }
-                else
+                }else if(qualitys[0] == "close")
+                {
+                    break;
+                }else
                 {
                     Console.WriteLine("Please Try Again!");
                 }
