@@ -5,3 +5,5 @@ C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.csp
 C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.csproj.CoreCompileInputs.cache
 C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.exe
 C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.pdb
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\bin\Debug\Qualıty-Checker.exe.CodeAnalysisLog.xml
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\bin\Debug\Qualıty-Checker.exe.lastcodeanalysissucceeded
