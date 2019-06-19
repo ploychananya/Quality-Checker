@@ -1,0 +1,7 @@
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\bin\Debug\Qualıty-Checker.exe.config
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\bin\Debug\Qualıty-Checker.exe
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\bin\Debug\Qualıty-Checker.pdb
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.csprojAssemblyReference.cache
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.csproj.CoreCompileInputs.cache
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.exe
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.pdb
