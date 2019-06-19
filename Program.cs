@@ -6,10 +6,37 @@ using System.Threading.Tasks;
 
 namespace Qualıty_Checker
 {
-    class Program
+    //main class 
+    public class Program
     {
+        //        static void Main(string[] args)
+
+        
         static void Main(string[] args)
         {
+            while (true)
+            {
+                var analyze = new Analyze();
+
+                string input = Console.ReadLine();
+                string[] qualitys = input.Split(' ');
+                int qualitySize = qualitys.Length;
+
+                if (qualitys[0] == "qc" && qualitys[1] != null) // have to protect when filepath does not works.
+                {
+                    int index = 2;
+                    string filePath = qualitys[1];
+                    while (index < qualitySize)
+                    {
+                        analyze.Method(qualitys[index]); //print each analyze quality
+                        index++;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Please Try Again!");
+                }
+            }
         }
     }
 }
