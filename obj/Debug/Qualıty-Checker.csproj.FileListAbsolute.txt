@@ -15,3 +15,5 @@ C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MLCHARGENLib
 C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MLPROXYLib.dll
 C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MPLATFORMLib.dll
 C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.csproj.ResolveComReference.cache
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\bin\Debug\Properties\AssemblyInfo.cs
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\bin\Debug\Interop.MPLATFORMLib.dll
