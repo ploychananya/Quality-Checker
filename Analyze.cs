@@ -19,7 +19,7 @@ namespace Qualıty_Checker
         //MFReader myReader = new MFReader();
         public void Method(string filePath, string quality)
         {
-            filePath = @"e:\VideoFiles\Cannon.mp4";
+            filePath = @"E:\VideoFiles\Cannon.mp4";
             //string extraProps = "video_track=-1";
             MFileClass myFile = new MFileClass();
             //myFile.FileNameSet(filePath, extraProps);
