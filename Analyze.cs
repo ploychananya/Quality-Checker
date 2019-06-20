@@ -19,7 +19,7 @@ namespace Qualıty_Checker
         //MFReader myReader = new MFReader();
         public void Method(string filePath, string quality)
         {
-            filePath = @"\E:\VideoFiles\aiai.webm";
+            filePath = @"e:\VideoFiles\Cannon.mp4";
             string extraProps = "video_track=-1";
             MFileClass myFile = new MFileClass();
             myFile.FileNameSet(filePath, extraProps);
@@ -39,9 +39,10 @@ namespace Qualıty_Checker
                 string strFormat;
                 M_VID_PROPS vidProps;
                 myFile.FormatVideoGet(eMFormatType.eMFT_Output, out vidProps, out nIndex, out strFormat);
-                Console.WriteLine(vidProps.nAspectX +" * " + vidProps.nAspectY + " ScaleType: " + vidProps.eScaleType+ "  bitrate: "+ vidProps.dblRate);
-                Console.WriteLine(nIndex);
-                Console.WriteLine(strFormat);
+                Console.WriteLine((vidProps.nAspectX).ToString() + " * " + (vidProps.nAspectY).ToString() + "\n"+" ScaleType: " + (vidProps.eScaleType).ToString() + "  bitrate: "+ (vidProps.dblRate).ToString());
+                Console.WriteLine(nIndex.ToString());
+                Console.WriteLine(strFormat.ToString());
+                Console.WriteLine((eMFormatType.eMFT_Output).ToString());
                 //myFile.FormatVideoGet();
 
             }
