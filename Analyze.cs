@@ -3,16 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+using System.ComponentModel;
+using System.Data;
+using System.Windows.Forms;
+using MPLATFORMLib;
 
 namespace Qualıty_Checker
 {
-    public class Analyze
+    public partial class Analyze : Form
     {
+        private MFile myfile;
+
+
         public void Method(string filePath, string quality)
         {
+            myfile = new MFile();
+            string extraProps = "vidio_track=-1";
+            myfile.FileNameSet(filePath, extraProps);
+            
+            //myFile.FileNameSet(filePath, extraProps);
+
             // pull vidio file to variable;
             if (quality == "-solution")
             {
+                myfile.FilePlayStart();// to start playback
                 //find solution 
                 //show solution 
                 Console.WriteLine("Solution : 720p");

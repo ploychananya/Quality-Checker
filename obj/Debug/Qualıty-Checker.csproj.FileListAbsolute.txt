@@ -5,3 +5,13 @@ C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.csp
 C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.csproj.CoreCompileInputs.cache
 C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.exe
 C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.pdb
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MCCDisplayLib.dll
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MCHROMAKEYLib.dll
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MCOLORSLib.dll
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MFCodecsCoreLib.dll
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MFOverlayHTMLLib.dll
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MFSignalingDTMFLib.dll
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MLCHARGENLib.dll
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MLPROXYLib.dll
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Interop.MPLATFORMLib.dll
+C:\Users\cruenpitak\source\repos\Qualıty-Checker\obj\Debug\Qualıty-Checker.csproj.ResolveComReference.cache
