@@ -20,9 +20,21 @@ namespace Qualıty_Checker
         public void Method(string filePath, string quality)
         {
             filePath = @"e:\VideoFiles\Cannon.mp4";
-            string extraProps = "video_track=-1";
+            //string extraProps = "video_track=-1";
             MFileClass myFile = new MFileClass();
-            myFile.FileNameSet(filePath, extraProps);
+            //myFile.FileNameSet(filePath, extraProps);
+
+
+            myFile.PropsSet("active_frc", "0");
+            myFile.PropsSet("on_frame.sync", "true");
+            myFile.PropsSet("file::video_track", "-1");
+            myFile.PropsSet("loop", "false");
+            //yFile.OnEventSafe += m_objFile_OnEventSafe;
+            //myFile.OnFrameSafe -= m_objFileScan_OnFrameSafe;
+            myFile.PropsSet("rate_control", "false");
+            myFile.FileNameSet(filePath, "");
+
+
             //.ObjectStart(m_objPlaylist);
             //myFile.ObjectStart(myFile);
             //Console.WriteLine("between frame: 100-110");
