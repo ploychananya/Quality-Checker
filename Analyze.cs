@@ -21,13 +21,25 @@ namespace Qualıty_Checker
         //MFReader myReader = new MFReader();
         public void Method(string filePath, string quality)
         {
+            //Playlist
+            int nIndex = -1;
             MPlaylistClass myPlaylist = new MPlaylistClass();
             myPlaylist.PreviewWindowSet("", 10);
             myPlaylist.PreviewEnable("", 1, 1);
-            myPlaylist.ObjectStart(new object());
-            int nIndex = -1;
+            //myPlaylist.ObjectStart(new object());
             MItem pFile;
             myPlaylist.PlaylistAdd(null, filePath, "", ref nIndex, out pFile);
+            //Playlist
+            
+            myPlaylist.FormatAudioGet(eMFormatType.eMFT_Output, out audProps, out nIndex, out strFormat);
+            
+            //int nIndex;
+            //string strFormat;
+            //M_AUD_PROPS audProps;
+            //MPlaylistClass myPlaylist = new MPlaylistClass();
+
+            //audProps.nSamplesPerSec = 48000;
+            //myPlaylist.FormatAudioSet(eMFormatType.eMFT_Convert, ref audProps);
             //filePath = @"/c/Users/ployrue/Desktop";
             //string extraProps = "video_track=-1";
 
@@ -112,13 +124,24 @@ namespace Qualıty_Checker
                 //show solution 
                 Console.WriteLine("between frame: 100-110");
             }
-            else if (quality == "-audiotrack")
+            else if (quality == "-audChanel")
             {
 
                 int nChannels;
                 myPlaylist.AudioChannelsPerTrackGet(out nChannels);
-                Console.WriteLine("#Audiotrack(s) : " + nChannels);
+                Console.WriteLine("#AudioChanel(s) : " + nChannels);
 
+            } else if (quality == "-audTrack")
+            {
+                int tCount;
+                myPlaylist.AudioTracksGetCount(out tCount);
+                Console.WriteLine("#AudioTrack(s) : " + tCount);
+
+            }else if (quality == "-volume")
+            {
+                double myVol;
+                myPlaylist.PreviewAudioVolumeGet("", -1, out myVol);
+                Console.WriteLine("Volume(dB) : " + myVol);
             }
             else if (quality == "-play")
             {
@@ -150,16 +173,20 @@ namespace Qualıty_Checker
                 //string strFormat;
                 //M_AUD_PROPS audProps;
                 //MPlaylistClass myPlaylist = new MPlaylistClass();
-                myPlaylist.FormatAudioGet(eMFormatType.eMFT_Output, out audProps, out nIndex, out strFormat);
+
+                //myPlaylist.FormatAudioGet(eMFormatType.eMFT_Output, out audProps, out nIndex, out strFormat);
+
                 //audProps.nSamplesPerSec = 48000;
                 //myPlaylist.FormatAudioSet(eMFormatType.eMFT_Convert, ref audProps);
                 Console.WriteLine("Format: " + strFormat);
-            } else if (quality == "-SamplingRate")
+            } else if (quality == "-sRate")
             {
                 //string strFormat;
                 //M_AUD_PROPS audProps;
                 //MPlaylistClass myPlaylist = new MPlaylistClass();
-                myPlaylist.FormatAudioGet(eMFormatType.eMFT_Output, out audProps, out nIndex, out strFormat);
+
+               //myPlaylist.FormatAudioGet(eMFormatType.eMFT_Output, out audProps, out nIndex, out strFormat);
+
                 //audProps.nSamplesPerSec = 48000;
                 //myPlaylist.FormatAudioSet(eMFormatType.eMFT_Convert, ref audProps);
                 Console.WriteLine("Sampling Rate : " + audProps.nSamplesPerSec);
