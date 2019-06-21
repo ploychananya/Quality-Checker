@@ -9,9 +9,10 @@ namespace Qualıty_Checker
 {
     public class Lib
     {
-        public void GetFileInfo(MFileClass m_objMFReader, string propertyNode)
+        public string GetFileInfo(MFileClass m_objMFReader, string propertyNode)
         {
-            //string fileInfo = "";
+            //string infos = string.Empty;
+            string json = "\"info\":{";
             int nCount = 0;
             try
             {
@@ -21,6 +22,8 @@ namespace Qualıty_Checker
             catch (Exception) { }
             for (int i = 0; i < nCount; i++)
             {
+                int startIndex = 12;
+                int length = 2;
                 string sName;
                 string sValue;
                 int bNode = 0;
@@ -34,12 +37,13 @@ namespace Qualıty_Checker
                 }
                 else
                 {
-                    Console.WriteLine(sRelName + " = " + sValue + Environment.NewLine);
-                    //fileInfo += sRelName + " = " + sValue + Environment.NewLine;
+                    string sub_name = sRelName.Substring(startIndex, sRelName.Length - 12);
+                    json += "\"" + sub_name + "\"" + ":" + "\"" + sValue + "\",";
+                    Console.WriteLine(sub_name + ":" + sValue + Environment.NewLine);
                 }
 
             }
-            //return fileInfo;
+            return json;
         }
     }
 }
