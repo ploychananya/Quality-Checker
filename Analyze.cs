@@ -24,15 +24,73 @@ namespace Qualıty_Checker
             //Playlist
             int nIndex = -1;
             MPlaylistClass myPlaylist = new MPlaylistClass();
+            
             myPlaylist.PreviewWindowSet("", 10);
             myPlaylist.PreviewEnable("", 1, 1);
             //myPlaylist.ObjectStart(new object());
             MItem pFile;
             myPlaylist.PlaylistAdd(null, filePath, "", ref nIndex, out pFile);
+
+            /*
+            MPlaylistClass myPlaylist = new MPlaylistClass();
+            myPlaylist.PreviewWindowSet("", 10);
+            myPlaylist.PreviewEnable("", 1, 1);
+            myPlaylist.ObjectStart(new object());
+            int nIndex = -1;
+            MItem pFile;
+            myPlaylist.PlaylistAdd(null, filePath, "", ref nIndex, out pFile);
+            myPlaylist.FilePlayStart();
+            int nCount = 2;
+            //((IMProps)pFile).PropsGetCount("info", out nCount);
+
+            for (int i = 0; i < nCount; i++)
+            {
+                string myName;
+                string myValue;
+                int myNode;
+                ((IMProps)pFile).PropsGetByIndex("info", i, out myName, out myValue, out myNode);
+
+                Console.WriteLine(myName+" "+myValue+ " "+ myNode);
+                ((IMProps)pFile).PropsRemove(myName);
+            }
+            */
+
+
+
+            
+
+
+            //string myVal;
+            //((IMProps)pFile).PropsGet("object", out myVal);
+            //Console.WriteLine(myVal);
+            
             //Playlist
-            
-            myPlaylist.FormatAudioGet(eMFormatType.eMFT_Output, out audProps, out nIndex, out strFormat);
-            
+
+
+            //MFILECLASS
+            //MFileClass file = new MFileClass();
+            //IMAudioTrack track;
+            //Create new virtual track as full clone of 0 track
+            //file.AudioTrackAdd(0, "", "NewTrack", out track);
+            //Create new virtual track as clone of 1,2,4 channels of 2 track
+            //file.AudioTrackAdd(2, "1,2,4", "NewTrack", out track);
+
+
+
+            //MITEMCLASS
+
+
+            //myPlaylist.FilePlayStart();
+            //yPlaylist.FormatAudioGet(eMFormatType.eMFT_Output, out audProps, out nIndex, out strFormat);
+
+            //int myIndex = -1;
+
+            //MItem myTargetItem;
+            //myPlaylist.PlaylistCommandAdd("mute", "true", myItem, ref myIndex, out myTargetItem);
+
+            //MItem myTargetItem;
+            //myPlaylist.PlaylistCommandAdd("mute", "true", myItem, ref nIndex, out myTargetItem);
+
             //int nIndex;
             //string strFormat;
             //M_AUD_PROPS audProps;
@@ -111,6 +169,21 @@ namespace Qualıty_Checker
                 //myPlaylist.PlaylistBackgroundGet();
                 //myFile.FormatVideoGet();
 
+            }else if (quality == "-info")
+            {
+
+                int nCount;
+                ((IMProps)pFile).PropsGetCount("", out nCount); //Only Object Property
+                for (int i = 0; i < nCount; i++)
+                {
+                    string myName;
+                    string myValue;
+                    int myNode;
+                    ((IMProps)pFile).PropsGetByIndex("", i, out myName, out myValue, out myNode);
+                    Console.WriteLine(myName + " " + myValue + " " + myNode.ToString());
+                    //Console.WriteLine(myValue);
+                    //((IMProps)myItem).PropsRemove(myName);
+                }
             }
             else if (quality == "-codec")
             {
@@ -166,10 +239,22 @@ namespace Qualıty_Checker
             {
                 string FileName;
                 myPlaylist.FileNameGet(out FileName);
-                Console.WriteLine(" File's name : " + FileName);
+                Console.WriteLine("File's name : " + FileName.ToString());
             } else if (quality == "-format")
             {
                 //int nIndex;
+                //string strFormat;
+                //M_AUD_PROPS audProps;
+                //MPlaylistClass myPlaylist = new MPlaylistClass();
+                //eMFormatType autype;
+                myPlaylist.FormatAudioGet(eMFormatType.eMFT_Output, out audProps, out nIndex, out strFormat);
+
+                //audProps.nSamplesPerSec = 48000;
+                //myPlaylist.FormatAudioSet(eMFormatType.eMFT_Convert, ref audProps);
+                Console.WriteLine("Format: " + strFormat);
+                //Console.WriteLine("Format2: " + myItem.FileRateGet()
+            } else if (quality == "-sRate")
+            {
                 //string strFormat;
                 //M_AUD_PROPS audProps;
                 //MPlaylistClass myPlaylist = new MPlaylistClass();
@@ -178,18 +263,10 @@ namespace Qualıty_Checker
 
                 //audProps.nSamplesPerSec = 48000;
                 //myPlaylist.FormatAudioSet(eMFormatType.eMFT_Convert, ref audProps);
-                Console.WriteLine("Format: " + strFormat);
-            } else if (quality == "-sRate")
-            {
-                //string strFormat;
-                //M_AUD_PROPS audProps;
-                //MPlaylistClass myPlaylist = new MPlaylistClass();
-
-               //myPlaylist.FormatAudioGet(eMFormatType.eMFT_Output, out audProps, out nIndex, out strFormat);
-
-                //audProps.nSamplesPerSec = 48000;
-                //myPlaylist.FormatAudioSet(eMFormatType.eMFT_Convert, ref audProps);
-                Console.WriteLine("Sampling Rate : " + audProps.nSamplesPerSec);
+                
+                pFile.FileRateGet(out rate);
+                Console.WriteLine("Rate : " + audProps.nSamplesPerSec + "X");
+                Console.WriteLine("Sample Rate : " + audProps.nSamplesPerSec);
             }
             }
     }
