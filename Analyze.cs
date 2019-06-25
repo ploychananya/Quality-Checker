@@ -10,16 +10,42 @@ namespace Qualıty_Checker
         string info;
         string strFormat;
         M_AUD_PROPS audProps;
-
+       
         public void Method(string filePath, string quality)
         {
             Lib lib = new Lib();
+            Info info = new Info();
+
+
+            /////////////////////////////////////////////
+            ///
+            MFileClass m_objReader = new MFileClass();
+            MRendererClass m_objRenderer = new MRendererClass();
+            MPreviewClass preview = new MPreviewClass();
+            m_objReader.FileNameSet(filePath, "loop=true");
+            m_objReader.PropsSet("object::on_frame.sync", "true");
+            m_objReader.PropsSet("object::on_frame.data", "true");
+            m_objReader.OnFrameSafe += lib.M_objReader_OnFrameSafe;
+            m_objReader.FilePlayStart();
+            
+
+            //////////////////////////////////////////////
+
+            //MFrame myFrame = new MFrame() ;
+            //MF_FRAME_INFO FrameInfo;
 
             MFileClass myFile = new MFileClass();
+           
             myFile.FileNameSet(filePath, "");
             myFile.FilePlayStart(); //it has to play for respresent the statistic.
             info = lib.GetFileInfo(myFile, "file::info");
-            Console.WriteLine(info);
+            //myFile.FileFrameGet(10.00, 1.0, out myFrame);
+
+
+            
+
+
+            
             if (quality == "-solution")
             {
             

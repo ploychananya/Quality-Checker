@@ -55,3 +55,11 @@ C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\obj\Debug\Qualıty-Checker
 C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\obj\Debug\Qualıty-Checker.csproj.CoreCompileInputs.cache
 C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\obj\Debug\Qualıty-Checker.exe
 C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\obj\Debug\Qualıty-Checker.pdb
+C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\bin\Debug\Newtonsoft.Json.dll
+C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\bin\Debug\Newtonsoft.Json.xml
+C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\obj\Debug\Qualıty-Checker.csproj.CopyComplete
+C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\bin\Debug\System.Net.Http.Formatting.dll
+C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\bin\Debug\Vse.Web.Serialization.dll
+C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\bin\Debug\WebApiContrib.Formatting.JavaScriptSerializer.dll
+C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\bin\Debug\System.Net.Http.Formatting.xml
+C:\Users\cruenpitak\Desktop\QC latest\Quality-Checker\bin\Debug\Vse.Web.Serialization.pdb
