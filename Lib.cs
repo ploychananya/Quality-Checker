@@ -16,157 +16,9 @@ namespace Qualıty_Checker
      
         public Info info = new Info();
         public Metadata metadataObj = new Metadata();
+        //public Analyze analyze = new Analyze();
 
-        unsafe byte GetPixelValue(uint* startOfFrame, int width, int x, int y) // 100 pıxel 
-        {
-            uint* pixel = startOfFrame + (y * width) + x;
-            byte* bw = (byte*)pixel;
-            return *bw;
-        }
-        unsafe void SetPixelValue(uint* startOfFrame, int width, int x, int y, byte Value) // 100 pıxel 
-        {
-
-            uint* pixel = startOfFrame + (y * width) + x;
-            byte* blue = (byte*)pixel;
-            byte* green = ((byte*)pixel) + 1;
-            byte* red = ((byte*)pixel) + 2;
-            *blue = Value;
-            *green = Value;
-            *red = Value;
-        }
-        public float[] kernel =
-{
-            -1.0f, -1.0f, -1.0f,-1.0f, -1.0f, -1.0f,
-            -1.0f,-1.0f, -1.0f,9.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,-1.0f, -1.0f, -1.0f,
-
-        };
-
-        public float GetKernelValue(int x, int y)
-        {
-            return kernel[y * 3 + x];
-        }
-
-        public void M_objReader_OnFrameSafe(string bsChannelID, object pMFrame)//**********************************
-        {
-
-            MFrame clonedFrame;
-
-            M_AV_PROPS avProps;
-            (pMFrame as IMFrame).FrameAVPropsGet(out avProps);
-            int frameWidth = avProps.vidProps.nWidth;
-            int frameHeight = Math.Abs(avProps.vidProps.nHeight);
-            int pcbSize;
-            long framePointer;
-            long framePointerCloned;
-            byte valuePixel;
-            (pMFrame as IMFrame).FrameClone(out clonedFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32);
-
-            (pMFrame as IMFrame).FrameVideoGetBytes(out pcbSize, out framePointer);
-
-            unsafe
-            {
-                //convert original frame to bw
-                uint* videoData = (uint*)framePointer;
-                byte* alpha;
-                byte* red;
-                byte* green;
-                byte* blue;
-                byte grayScale;
-
-                for (int y = 0; y < frameHeight; y++)
-                {
-                    for (int x = 0; x < frameWidth; x++)
-                    {
-
-
-                        blue = (byte*)videoData;
-                        green = ((byte*)videoData) + 1;
-                        red = ((byte*)videoData) + 2;
-                        alpha = ((byte*)videoData) + 3;
-                        grayScale = (byte)((*blue * 0.1) + (*green * 0.6f) + (*red * 0.3f));
-                        SetPixelValue((uint*)framePointer, frameWidth, x, y, grayScale);
-                        videoData++;
-
-                    }
-                }
-
-
-
-                //(pMFrame as IMFrame).FrameClone(out clonedFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32);
-
-                byte threshold = 20;
-
-                clonedFrame.FrameVideoGetBytes(out pcbSize, out framePointerCloned);
-                videoData = (uint*)framePointerCloned;
-
-                /*SIMPLE!! EDGE DETECTION 
-                for (int y = 1; y < frameHeight; y++)
-                {
-                    for (int x = 1; x < frameWidth; x++)
-                    {
-
-                        //byte currentValue = GetPixelValue((uint*)framePointer, frameWidth, x, y);
-                        byte diffHoriZontal= (byte)Math.Abs(GetPixelValue((uint*)framePointer, frameWidth, x - 1, y) - GetPixelValue((uint*)framePointer, frameWidth, x, y));
-                        byte diffVirtical = (byte)Math.Abs(GetPixelValue((uint*)framePointer, frameWidth, x, y-1 ) - GetPixelValue((uint*)framePointer, frameWidth, x, y));
-                        if(diffHoriZontal > threshold || diffVirtical > threshold)
-                            SetPixelValue((uint*)framePointerCloned, frameWidth, x, y, 255);
-                        else
-                            SetPixelValue((uint*)framePointerCloned, frameWidth, x, y, 0);
-                        //byte pixelValueOfOriginal = GetPixelValue((uint*)framePointer, frameWidth, x, y);
-                        //byte pixelValueOfCloned = GetPixelValue((uint*)framePointerCloned, frameWidth, x, y);
-
-
-                    }
-                }
-                */
-
-
-                //SHARPEN&BLUR
-                for (int y = 1; y < frameHeight - 1; y++)
-                {
-                    for (int x = 1; x < frameWidth - 1; x++)
-                    {
-                        float sumKernel = 0;
-
-
-                        for (int yy = -1; yy < 2; yy++)
-                            for (int xx = -1; xx < 2; xx++)
-                            {
-
-
-                                sumKernel += GetPixelValue((uint*)framePointer, frameWidth, x + xx, y + yy) * GetKernelValue(xx + 1, yy + 1);
-
-
-                            }
-
-                        //sumKernel = GetPixelValue((uint*)framePointer, frameWidth, x , y);
-
-                        if (sumKernel > 255)
-                            sumKernel = 255;
-                        if (sumKernel < 0)
-                            sumKernel = 0;
-
-                        //byte diffHoriZontal = (byte)Math.Abs(GetPixelValue((uint*)framePointer, frameWidth, x - 1, y) - GetPixelValue((uint*)framePointer, frameWidth, x, y));
-                        //byte diffVirtical = (byte)Math.Abs(GetPixelValue((uint*)framePointer, frameWidth, x, y - 1) - GetPixelValue((uint*)framePointer, frameWidth, x, y));
-                        //if (diffHoriZontal > threshold || diffVirtical > threshold)
-                        SetPixelValue((uint*)framePointerCloned, frameWidth, x, y, (byte)sumKernel);
-                        //else
-                        //SetPixelValue((uint*)framePointerCloned, frameWidth, x, y, 0);
-                        //byte pixelValueOfOriginal = GetPixelValue((uint*)framePointer, frameWidth, x, y);
-                        //byte pixelValueOfCloned = GetPixelValue((uint*)framePointerCloned, frameWidth, x, y);
-
-
-                    }
-                }
-
-            }
-            //preview.ReceiverPutFrame(bsChannelID, clonedFrame);
-
-            Marshal.ReleaseComObject(pMFrame);
-            Marshal.ReleaseComObject(clonedFrame);
-            GC.Collect();
-        }
+        
 
         public Info GetFileInfo(MFileClass m_objMFReader, string propertyNode)
         {
@@ -210,7 +62,7 @@ namespace Qualıty_Checker
                     string sub_name = sRelName.Substring(startIndex, sRelName.Length - 12);
 
 
-
+                    Console.WriteLine(sub_name+"            :              "+sValue);
                     //insert to json 
                     if (sub_name == "ts_programs")
                     {
@@ -480,7 +332,7 @@ namespace Qualıty_Checker
                         }
                         else if (sub_name.Substring(9, sub_name.Length - 9) == "codec_frame_rate")
                         {
-                            info.audio[index_audio].codec_frame_rate = Int32.Parse(sValue);
+                            info.audio[index_audio].codec_frame_rate = Double.Parse(sValue);
                         }
                         else if (sub_name.Substring(9, sub_name.Length - 9) == "r_frame_rate")
                         {

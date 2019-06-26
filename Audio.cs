@@ -21,7 +21,7 @@ namespace Qualıty_Checker
         public string pixel_ar;
         public string display_ar;
         public string key_distance;
-        public int codec_frame_rate;
+        public double codec_frame_rate;
         public string r_frame_rate;
         public string avg_frame_rate;
         public string time_base;

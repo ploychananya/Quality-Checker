@@ -19,4 +19,4 @@ namespace Qualıty_Checker
         public ColorHandler.HSV HSV { get; private set; }
     }
 }
-}
+
