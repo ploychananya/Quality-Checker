@@ -66,6 +66,7 @@
     <Compile Include="Audio.cs" />
     <Compile Include="ColorHandler.cs" />
     <Compile Include="ColorManager.cs" />
+    <Compile Include="FreezFrame.cs" />
     <Compile Include="Info.cs" />
     <Compile Include="Lib.cs" />
     <Compile Include="Medialook.cs">

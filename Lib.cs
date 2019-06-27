@@ -83,7 +83,9 @@ namespace Qualıty_Checker
                         Audio audioObj = new Audio();
                         for (int j = 0; j < Int32.Parse(sValue); j++)
                         {
-                            info.audio[j] = audioObj;
+
+                            //info.audio[j] = audioObj;
+                            info.audio.Add(audioObj);
                             info.audio[j].metadata = metadataObj;
                         }
 
@@ -98,7 +100,8 @@ namespace Qualıty_Checker
                         Vidio vidioObj = new Vidio();
                         for (int j = 0; j < Int32.Parse(sValue); j++)
                         {
-                            info.video[j] = vidioObj;
+                            //info.video[j] = vidioObj;
+                            info.video.Add(vidioObj);
                             info.video[j].metadata = metadataObj;
                         }
                     }

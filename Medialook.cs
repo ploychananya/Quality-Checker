@@ -32,57 +32,52 @@ namespace Qualıty_Checker
 {
     partial class  Medialook : Form
     {
+        Analyze analyze = new Analyze();
+        Lib lib = new Lib();
+        public Info info = new Info();
         bool _freez = true;
-        public MFrame clonedFrame1;
-        public MFrame clonedFrame2;
+        public MFrame clonedFrame;
+        public MFrame previousFrame;
+        long previousFrameFramePointer;
         public long framePointerCloned1;
         public long framePointerCloned2;
         public List<int> startFreez = new List<int>();
         public List<int> freezTotal = new List<int>();
-
         public int _freezFramesCount = 0;
-        public int frameCount = 0;
-
-        public int indexPrintList = 0;
-
-        private MFileClass m_objReader = new MFileClass();
-
+        public int frameCount = 0; // so start at frame 1
+        public byte threshold = 60;
+        public FreezFrame ObjFreezFrame;
+        public int index_freezFrameInfo=-1;
+        public string _reportName;
+        public int indexFreezInfo = 0;
+        public MFileClass m_objReader = new MFileClass();
         private MRendererClass m_objRenderer = new MRendererClass();
-
-
-
-        //second preview
         private MPreviewClass preview = new MPreviewClass();
-
-
-
-        public Medialook(string filePath)
+        public Medialook(string filePath, Info infoFromAnalyze, string reportName)
         {
+            _reportName = reportName;
+            info = infoFromAnalyze;
             TryToOpenFile(filePath);
-            //InitializeComponent();
+            info.freez_Ththreshold = threshold;
         }
 
-        private void TryToOpenFile(string pathToFile)
+        public void TryToOpenFile(string pathToFile)
         {
             try
             {
+                
                 m_objReader.FileNameSet(pathToFile, "loop=true");
                 m_objReader.PropsSet("object::on_frame.sync", "true");
                 m_objReader.PropsSet("object::on_frame.data", "true");
                 m_objReader.OnFrameSafe += M_objReader_OnFrameSafe;
                 m_objReader.FilePlayStart();
-                
-
             }
-
             catch (Exception ex)
             {
                 MessageBox.Show(  pathToFile + Environment.NewLine + ex.Message);
                 return;
-            }
-            
+            }  
         }
-
         unsafe byte GetPixelValue(uint* startOfFrame, int width, int x, int y) // 100 pıxel 
         {
             uint* pixel = startOfFrame + (y * width) + x;
@@ -121,53 +116,18 @@ namespace Qualıty_Checker
         {
             return kernel[y * 3 + x];
         }
-
-
-        public void M_objReader_OnFrameSafe(string bsChannelID, object pMFrame)//**********************************
+        public void GrayScaleFrame(long FramePointer, int frameWidth, int frameHeight)
         {
-
-            //public MFrame clonedFrame1;
-            //public MFrame clonedFrame2;
-
-            M_AV_PROPS avProps;
-            (pMFrame as IMFrame).FrameAVPropsGet(out avProps);
-            int frameWidth = avProps.vidProps.nWidth;
-            int frameHeight = Math.Abs(avProps.vidProps.nHeight);
-            int pcbSize;
-            long framePointer;
-            /*
-            public MFrame clonedFrame1;
-            public MFrame clonedFrame2;
-            public long framePointerCloned1;
-            public long framePointerCloned2;
-            */
-
-            byte valuePixel;
-
-            //int frameCount = 0;
-            //int B_frameCount = 0;
-            //int W_frameCount = 0;
-
-            //int startIndexFreezFrame;
-            //int _freezFramesCount = 0;
-
-            //List<int> _freezRange = new List<int>();
-            //(pMFrame as IMFrame).FrameClone(out clonedFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32);
-
-            (pMFrame as IMFrame).FrameVideoGetBytes(out pcbSize, out framePointer);
-
             unsafe
             {
-                //convert original frame to bw
-                uint* videoData = (uint*)framePointer;
-
+                uint* videoData = (uint*)FramePointer;
                 byte* alpha;
                 byte* red;
                 byte* green;
                 byte* blue;
                 byte grayScale;
 
-                for (int y = 0; y < frameHeight / 2; y++)
+                for (int y = 0; y < frameHeight; y++)
                 {
                     for (int x = 0; x < frameWidth; x++)
                     {
@@ -177,195 +137,124 @@ namespace Qualıty_Checker
                         red = ((byte*)videoData) + 2;
                         alpha = ((byte*)videoData) + 3;
                         grayScale = (byte)((*blue * 0.1f) + (*green * 0.6f) + (*red * 0.3f));
-                        SetPixelValue((uint*)framePointer, frameWidth, x, y, grayScale); //set it to greyscale
+                        SetPixelValue((uint*)FramePointer, frameWidth, x, y, grayScale); //set it to greyscale
                         videoData++;
 
                     }
                 }
-                // FREEZ FRAME DETECTION
-                frameCount++; //frame count 
+            }
+        }
+        public void M_objReader_OnFrameSafe(string bsChannelID, object pMFrame)//**********************************
+        {
+            frameCount++;
+            int nb_frames = (int)(info.duration * info.video[0].codec_frame_rate);
+            if (frameCount<=nb_frames) {
 
-                byte threshold = 20;
+                M_AV_PROPS avProps;
+                (pMFrame as IMFrame).FrameAVPropsGet(out avProps);
+                int frameWidth = avProps.vidProps.nWidth;
+                int frameHeight = Math.Abs(avProps.vidProps.nHeight);
+                int pcbSize;
+                long currentFrameFramePointer;
+                MFrame currentFrame; 
+                (pMFrame as IMFrame).FrameClone(out currentFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32);
+                currentFrame.FrameVideoGetBytes(out pcbSize, out currentFrameFramePointer);
 
-
-
-
-                if (frameCount % 2 == 1)
+                unsafe
                 {
-                    if (frameCount == 1)
+
+                    GrayScaleFrame(currentFrameFramePointer, frameWidth, frameHeight);
+    
+                    // FREEZ FRAME DETECTION
+                    if (previousFrame == null)
                     {
-                        (pMFrame as IMFrame).FrameClone(out clonedFrame1, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //set gray and use it in clone 
+                        (currentFrame as IMFrame).FrameClone(out previousFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //set gray and use it in clone
+                        Marshal.ReleaseComObject(pMFrame);
+                        Marshal.ReleaseComObject(currentFrame);
+                        GC.Collect();
+                        return;
                     }
-
-                    clonedFrame1.FrameVideoGetBytes(out pcbSize, out framePointerCloned1);
-                    videoData = (uint*)framePointerCloned1;
-
-                }
-                else if (frameCount % 2 == 0)
-                {
-
-                    (pMFrame as IMFrame).FrameClone(out clonedFrame2, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //set gray and use it in clone 
-                    clonedFrame2.FrameVideoGetBytes(out pcbSize, out framePointerCloned2);
-                    videoData = (uint*)framePointerCloned2;
-
-
-                    for (int y = 0; y < frameHeight / 2; y++)
+                    previousFrame.FrameVideoGetBytes(out pcbSize, out previousFrameFramePointer);
+                    _freez = true;
+                    for (int y = 0; y < frameHeight; y++)
                     {
                         for (int x = 0; x < frameWidth; x++)
                         {
-
-
-                            //Console.WriteLine("in");
-                            byte PixelValueClone1 = (byte)Math.Abs(GetPixelValue((uint*)framePointerCloned1, frameWidth, x, y));
-                            byte PixelValueClone2 = (byte)Math.Abs(GetPixelValue((uint*)framePointerCloned2, frameWidth, x, y));
-
-
-                            if ((PixelValueClone1 -PixelValueClone2) > threshold)
+                            _freez = ComparePixel(currentFrameFramePointer, previousFrameFramePointer,threshold, frameWidth,x,y);
+                            if ( !_freez || frameCount == nb_frames)
                             {
                                 if (_freezFramesCount != 0)
                                 {
                                     freezTotal.Add(_freezFramesCount);
-                                    _freezFramesCount = 0;
+                                    //info.freezframe[indexFreezInfo].final_frame = ((int)(freezTotal[indexFreezInfo]) + (int)(startFreez[indexFreezInfo]));
+                                    //indexFreezInfo++;
                                 }
-                                _freez = false;
-                                break;
+                                    break;
                             }
-
-
-
-                            //GetPixelValue((uint*)framePointer, frameWidth, x - 1, y);
-
                         }
-
                         if (!_freez)
                         {
+                            info.freezframe[indexFreezInfo].final_frame = ((int)(freezTotal[indexFreezInfo]) + (int)(startFreez[indexFreezInfo]));
+                            indexFreezInfo++;
                             break;
                         }
                     }
-
                     if (_freez)
                     {
-
-                        //add first index to list
                         if (_freezFramesCount == 0)
                         {
-                            startFreez.Add(frameCount);
-                            Console.WriteLine("START AT :    "+frameCount);//print index when it add 
+                            ObjFreezFrame = new FreezFrame();
+                            info.freezframe.Add(ObjFreezFrame); //if not it will clone same values 
+                            startFreez.Add(frameCount - 1);
+                            info.freezframe[indexFreezInfo].start_frame = startFreez[indexFreezInfo];
                         }
                             
-                        //framFreezcount
-                        _freezFramesCount++;
-                        Console.WriteLine(_freezFramesCount);
-
+                           
+                            _freezFramesCount++;
                     }
-
-                    Marshal.ReleaseComObject(clonedFrame1);
-
-                    (clonedFrame2 as IMFrame).FrameClone(out clonedFrame1, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //swap clon2 to clone 1
-
-
-                    _freez = true; //set to can calculate again
-
-                    //Marshal.ReleaseComObject(clonedFrame1);
-                    Marshal.ReleaseComObject(clonedFrame2); // wait for next clone
-
-                    //Console.WriteLine("Freez Frame(s): " + _freezFramesCount);
-
-
-
-
-
-
-
-
-
+                    Marshal.ReleaseComObject(previousFrame);
+                    (currentFrame as IMFrame).FrameClone(out previousFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //swap clon2 to clone 1
+                    Marshal.ReleaseComObject(currentFrame);
+                    Marshal.ReleaseComObject(pMFrame);
                 }
-
-
-
-                /*SIMPLE!! EDGE DETECTION 
-                for (int y = 1; y < frameHeight; y++)
+            }
+            else
+            {/*
+                for (int i = 0; i < freezTotal.Count; i++)
                 {
-                    for (int x = 1; x < frameWidth; x++)
-                    {
+                    //ObjFreezFrame = new FreezFrame();
+                    //info.freezframe.Add(ObjFreezFrame); //if not it will clone same values
 
-                        //byte currentValue = GetPixelValue((uint*)framePointer, frameWidth, x, y);
-                        byte diffHoriZontal= (byte)Math.Abs(GetPixelValue((uint*)framePointer, frameWidth, x - 1, y) - GetPixelValue((uint*)framePointer, frameWidth, x, y));
-                        byte diffVirtical = (byte)Math.Abs(GetPixelValue((uint*)framePointer, frameWidth, x, y-1 ) - GetPixelValue((uint*)framePointer, frameWidth, x, y));
-                        if(diffHoriZontal > threshold || diffVirtical > threshold)
-                            SetPixelValue((uint*)framePointerCloned, frameWidth, x, y, 255);
-                        else
-                            SetPixelValue((uint*)framePointerCloned, frameWidth, x, y, 0);
-                        //byte pixelValueOfOriginal = GetPixelValue((uint*)framePointer, frameWidth, x, y);
-                        //byte pixelValueOfCloned = GetPixelValue((uint*)framePointerCloned, frameWidth, x, y);
+                    //info.freezframe[i].start_frame = startFreez[i];
 
+                    //info.freezframe[i].final_frame = ((int)(freezTotal[i]) + (int)(startFreez[i]));
 
-                    }
-                }
-                */
+                    Console.WriteLine("Start at Frame : " + startFreez[i] + "   *****************    To Frame : " + ((int)(freezTotal[i]) + (int)(startFreez[i])) + " **********  Total(s) : " + (int)(freezTotal[i]) + "   Frame(s)");
 
-                /*
-                //SHARPEN&BLUR
-                for (int y = 1; y < frameHeight - 1; y++)
-                {
-                    for (int x = 1; x < frameWidth - 1; x++)
-                    {
-                        float sumKernel = 0;
-
-
-                        for (int yy = -1; yy < 2; yy++)
-                            for (int xx = -1; xx < 2; xx++)
-                            {
-
-
-                                sumKernel += GetPixelValue((uint*)framePointer, frameWidth, x + xx, y + yy) * GetKernelValue(xx + 1, yy + 1);
-
-
-                            }
-
-                        //sumKernel = GetPixelValue((uint*)framePointer, frameWidth, x , y);
-
-                        if (sumKernel > 255)
-                            sumKernel = 255;
-                        if (sumKernel < 0)
-                            sumKernel = 0;
-
-                        //byte diffHoriZontal = (byte)Math.Abs(GetPixelValue((uint*)framePointer, frameWidth, x - 1, y) - GetPixelValue((uint*)framePointer, frameWidth, x, y));
-                        //byte diffVirtical = (byte)Math.Abs(GetPixelValue((uint*)framePointer, frameWidth, x, y - 1) - GetPixelValue((uint*)framePointer, frameWidth, x, y));
-                        //if (diffHoriZontal > threshold || diffVirtical > threshold)
-                        SetPixelValue((uint*)framePointerCloned, frameWidth, x, y, (byte)sumKernel);
-                        //else
-                        //SetPixelValue((uint*)framePointerCloned, frameWidth, x, y, 0);
-                        //byte pixelValueOfOriginal = GetPixelValue((uint*)framePointer, frameWidth, x, y);
-                        //byte pixelValueOfCloned = GetPixelValue((uint*)framePointerCloned, frameWidth, x, y);
-
-
-                    }
                 }*/
+                System.Xml.Serialization.XmlSerializer writer =
+                new System.Xml.Serialization.XmlSerializer(typeof(Info));
+                var path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "//" + _reportName +".xml";
+                System.IO.FileStream file = System.IO.File.Create(path);
+                writer.Serialize(file, info);
+                file.Close();
 
+                frameCount = 0;
+                startFreez.Clear();
+                freezTotal.Clear();
+                Application.ExitThread();
             }
-            //preview.ReceiverPutFrame(bsChannelID, clonedFrame);
-            //Marshal.ReleaseComObject(clonedFrame1);
-            Marshal.ReleaseComObject(pMFrame);
-            //Marshal.ReleaseComObject(clonedFrame1);
-            //Marshal.ReleaseComObject(clonedFrame2);
-            GC.Collect();
-
-            int i = 0;
-
-            for (i = indexPrintList; i < freezTotal.Count; i++)
-            {
-
-                Console.WriteLine("Start at Frame : " + startFreez[i] + "   *****************    To Frame : " + ((int)(freezTotal[i])+ (int)(startFreez[i])) + " **********  Total(s) : " + (int)(freezTotal[i]) + "   Frame(s)");
-                
-            }
-            indexPrintList = i;
-            
-           
-
-           
         }
 
-
+        public bool ComparePixel(long currentFrameFramePointer, long previousFrameFramePointer,int threshold, int frameWidth, int x, int y)
+        {
+            unsafe
+            {
+                byte PixelValueCurrent = (byte)(GetPixelValue((uint*)currentFrameFramePointer, frameWidth, x, y));
+                byte PixelValuePrevious = (byte)(GetPixelValue((uint*)previousFrameFramePointer, frameWidth, x, y));
+                if (Math.Abs(PixelValueCurrent - PixelValuePrevious) > threshold) return false;
+                else return true;
+            }
+        }
     }
 }

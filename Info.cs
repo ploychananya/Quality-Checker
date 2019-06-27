@@ -34,8 +34,16 @@ namespace Qualıty_Checker
         public double kbps_avg;
         public double kbps_avg_audio;
 
-        public Vidio[] video = new Vidio[30];
-        public Audio[] audio= new Audio[30];
+        public byte freez_Ththreshold;
+
+        //public List<Vidio> video = new Vidio[video_tracks];
+        //public Audio[] audio= new Audio[audio_tracks];
+        public List<FreezFrame> freezframe = new List<FreezFrame>();
+        public List<Vidio> video = new List<Vidio>();
+        public List<Audio> audio = new List<Audio>();
+        
+
+
 
         //public double kbps_avg_video;
     }

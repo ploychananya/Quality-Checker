@@ -19,24 +19,13 @@ using System.IO;
 
 namespace Qualıty_Checker
 {
-    public partial class Analyze
+    public class Analyze
     {
-        private double rate;
-        private string name;
-        string info;
-        string strFormat;
-        M_AUD_PROPS audProps;
-
-
-
-        public bool calculation = true;
-
-        
-
-        public void Method(string filePath, string quality)
+        public Info info; 
+        public Info Method(string filePath, string quality)
         {
             Lib lib = new Lib();
-            Info info = new Info();
+            info = new Info();
 
 
             //while (calculation)
@@ -79,6 +68,8 @@ namespace Qualıty_Checker
 
             //Book overview = new Book();
             //overview.title = "Serialization Overview";
+
+            /*
             System.Xml.Serialization.XmlSerializer writer =
                 new System.Xml.Serialization.XmlSerializer(typeof(Info));
 
@@ -87,6 +78,9 @@ namespace Qualıty_Checker
 
             writer.Serialize(file, info);
             file.Close();
+            */
+
+            return info;
             
 
 
@@ -132,6 +126,10 @@ namespace Qualıty_Checker
             else if (quality == "-sRate")
             {
 
+            }
+            else
+            {
+                
             }
         }
 

@@ -19,6 +19,7 @@ namespace Qualıty_Checker
         {
             Analyze analyze = new Analyze();
             string filePath ;
+            string reportName;
             while (true)
             {
                 //var analyze = new Analyze();
@@ -29,14 +30,15 @@ namespace Qualıty_Checker
 
                 if (qualitys[0] == "qc" && qualitys[1] != null) // have to protect when filepath does not works.
                 {
-                    int index = 2;
+                    int index = 3;
                     filePath= qualitys[1];
-                  
+                    reportName = qualitys[2];
+
                     //Application.Run(new Medialook(filePath));
                     while (index < qualitySize)
                     {
-                        analyze.Method(filePath,qualitys[index]); //print each analyze quality
-                        Application.Run(new Medialook(filePath));
+                        Info info = analyze.Method(filePath,qualitys[index]); //print each analyze quality
+                        Application.Run(new Medialook(filePath,info,reportName));
                         index++;
                     }
                 }else if(qualitys[0] == "close")
