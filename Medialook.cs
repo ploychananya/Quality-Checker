@@ -8,26 +8,10 @@ using System;
 using MPLATFORMLib;
 //birkan.herguner@gmail.com
 using System.Windows.Forms;
-
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using System.Linq;
 using System.Runtime.InteropServices;
-
-
-
-
-
-
-
-
 using System.Data;
 using System.Diagnostics;
 using System.Threading;
-
 namespace Qualıty_Checker
 {
     partial class  Medialook : Form
@@ -60,7 +44,6 @@ namespace Qualıty_Checker
             TryToOpenFile(filePath);
             info.freez_Ththreshold = threshold;
         }
-
         public void TryToOpenFile(string pathToFile)
         {
             try
@@ -111,7 +94,6 @@ namespace Qualıty_Checker
             -1.0f, -1.0f, -1.0f,-1.0f, -1.0f, -1.0f,
 
         };
-
         private float GetKernelValue(int x, int y)
         {
             return kernel[y * 3 + x];
@@ -144,7 +126,7 @@ namespace Qualıty_Checker
                 }
             }
         }
-        public void M_objReader_OnFrameSafe(string bsChannelID, object pMFrame)//**********************************
+        public void M_objReader_OnFrameSafe(string bsChannelID, object pMFrame)
         {
             frameCount++;
             int nb_frames = (int)(info.duration * info.video[0].codec_frame_rate);
@@ -159,13 +141,11 @@ namespace Qualıty_Checker
                 MFrame currentFrame; 
                 (pMFrame as IMFrame).FrameClone(out currentFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32);
                 currentFrame.FrameVideoGetBytes(out pcbSize, out currentFrameFramePointer);
-
+                
+                // FREEZ FRAME DETECTION
                 unsafe
                 {
-
                     GrayScaleFrame(currentFrameFramePointer, frameWidth, frameHeight);
-    
-                    // FREEZ FRAME DETECTION
                     if (previousFrame == null)
                     {
                         (currentFrame as IMFrame).FrameClone(out previousFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //set gray and use it in clone
@@ -183,34 +163,17 @@ namespace Qualıty_Checker
                             _freez = ComparePixel(currentFrameFramePointer, previousFrameFramePointer,threshold, frameWidth,x,y);
                             if ( !_freez || frameCount == nb_frames)
                             {
-                                if (_freezFramesCount != 0)
-                                {
-                                    freezTotal.Add(_freezFramesCount);
-                                    //info.freezframe[indexFreezInfo].final_frame = ((int)(freezTotal[indexFreezInfo]) + (int)(startFreez[indexFreezInfo]));
-                                    //indexFreezInfo++;
-                                }
-                                    break;
+                                if (_freezFramesCount != 0) freezTotal.Add(_freezFramesCount);
+                                _freezFramesCount = 0;
+                                break;
                             }
                         }
-                        if (!_freez)
-                        {
-                            info.freezframe[indexFreezInfo].final_frame = ((int)(freezTotal[indexFreezInfo]) + (int)(startFreez[indexFreezInfo]));
-                            indexFreezInfo++;
-                            break;
-                        }
+                        if (!_freez) break;
                     }
                     if (_freez)
                     {
-                        if (_freezFramesCount == 0)
-                        {
-                            ObjFreezFrame = new FreezFrame();
-                            info.freezframe.Add(ObjFreezFrame); //if not it will clone same values 
-                            startFreez.Add(frameCount - 1);
-                            info.freezframe[indexFreezInfo].start_frame = startFreez[indexFreezInfo];
-                        }
-                            
-                           
-                            _freezFramesCount++;
+                        if (_freezFramesCount == 0) startFreez.Add(frameCount - 1);
+                        _freezFramesCount++;
                     }
                     Marshal.ReleaseComObject(previousFrame);
                     (currentFrame as IMFrame).FrameClone(out previousFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //swap clon2 to clone 1
@@ -219,19 +182,9 @@ namespace Qualıty_Checker
                 }
             }
             else
-            {/*
-                for (int i = 0; i < freezTotal.Count; i++)
-                {
-                    //ObjFreezFrame = new FreezFrame();
-                    //info.freezframe.Add(ObjFreezFrame); //if not it will clone same values
-
-                    //info.freezframe[i].start_frame = startFreez[i];
-
-                    //info.freezframe[i].final_frame = ((int)(freezTotal[i]) + (int)(startFreez[i]));
-
-                    Console.WriteLine("Start at Frame : " + startFreez[i] + "   *****************    To Frame : " + ((int)(freezTotal[i]) + (int)(startFreez[i])) + " **********  Total(s) : " + (int)(freezTotal[i]) + "   Frame(s)");
-
-                }*/
+            {
+                InsertFreezFrameInfo(info, startFreez, freezTotal);
+              
                 System.Xml.Serialization.XmlSerializer writer =
                 new System.Xml.Serialization.XmlSerializer(typeof(Info));
                 var path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "//" + _reportName +".xml";
@@ -246,6 +199,17 @@ namespace Qualıty_Checker
             }
         }
 
+        public void InsertFreezFrameInfo(Info info,List<int> startFreez,List<int> freezTotal)
+        {
+            for (int i = 0; i < freezTotal.Count; i++)
+            {
+                ObjFreezFrame = new FreezFrame();
+                info.freezframe.Add(ObjFreezFrame); //if not it will clone same values
+                info.freezframe[i].start_frame = startFreez[i];
+                info.freezframe[i].final_frame = ((int)(freezTotal[i]) + (int)(startFreez[i])) - 1;
+                //Console.WriteLine("Start at Frame : " + startFreez[i] + "   *****************    To Frame : " + (((int)(freezTotal[i]) + (int)(startFreez[i])) - 1) + " **********  Total(s) : " + (int)(freezTotal[i]) + "   Frame(s)");  
+            }
+        }
         public bool ComparePixel(long currentFrameFramePointer, long previousFrameFramePointer,int threshold, int frameWidth, int x, int y)
         {
             unsafe

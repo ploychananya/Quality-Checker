@@ -7,14 +7,8 @@ using System.Windows.Forms;
 
 namespace Qualıty_Checker
 {
-    //main class 
-    
     public class Program
     {
-        //        static void Main(string[] args)
-        
-        //[STAThread]
-        
         static  void Main(string[] args)
         {
             Analyze analyze = new Analyze();
@@ -22,26 +16,15 @@ namespace Qualıty_Checker
             string reportName;
             while (true)
             {
-                //var analyze = new Analyze();
-
                 string input = Console.ReadLine();
-                string[] qualitys = input.Split(' ');
-                int qualitySize = qualitys.Length;
-
-                if (qualitys[0] == "qc" && qualitys[1] != null) // have to protect when filepath does not works.
+                string[] filePaths = input.Split(' ');
+                if (filePaths[0] == "qc" && filePaths[1] != null) // have to protect when filepath does not works.
                 {
-                    int index = 3;
-                    filePath= qualitys[1];
-                    reportName = qualitys[2];
-
-                    //Application.Run(new Medialook(filePath));
-                    while (index < qualitySize)
-                    {
-                        Info info = analyze.Method(filePath,qualitys[index]); //print each analyze quality
-                        Application.Run(new Medialook(filePath,info,reportName));
-                        index++;
-                    }
-                }else if(qualitys[0] == "close")
+                    filePath= filePaths[1];
+                    reportName = filePaths[2];
+                    Info info = analyze.GetAllInfo(filePath); //print each analyze quality
+                    Application.Run(new Medialook(filePath,info,reportName));
+                }else if(filePaths[0] == "close")
                 {
                     break;
                 }else
