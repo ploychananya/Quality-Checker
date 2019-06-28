@@ -2,12 +2,10 @@
 using MPLATFORMLib;
 //birkan.herguner@gmail.com
 using System.Windows.Forms;
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Data;

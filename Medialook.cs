@@ -27,6 +27,8 @@ namespace Qualıty_Checker
         public long framePointerCloned2;
         public List<int> startFreez = new List<int>();
         public List<int> freezTotal = new List<int>();
+        public List<float[]> audioLoudRange = new List<float[]>();
+
         public int _freezFramesCount = 0;
         public int frameCount = 0; // so start at frame 1
         public byte threshold = 60;
@@ -37,6 +39,11 @@ namespace Qualıty_Checker
         public MFileClass m_objReader = new MFileClass();
         private MRendererClass m_objRenderer = new MRendererClass();
         private MPreviewClass preview = new MPreviewClass();
+        public float audioVuMax = -90;
+        public float audioVuMin = 0;
+        public float audioMaxthreshold = -20; // more than this very lound
+        public float audioMinthreshold = -70; // less than this mean silence
+
         public Medialook(string filePath, Info infoFromAnalyze, string reportName)
         {
             _reportName = reportName;
@@ -94,6 +101,8 @@ namespace Qualıty_Checker
             -1.0f, -1.0f, -1.0f,-1.0f, -1.0f, -1.0f,
 
         };
+        private int _audioLoudCount;
+
         private float GetKernelValue(int x, int y)
         {
             return kernel[y * 3 + x];
@@ -132,8 +141,42 @@ namespace Qualıty_Checker
             int nb_frames = (int)(info.duration * info.video[0].codec_frame_rate);
             if (frameCount<=nb_frames) {
 
+                
                 M_AV_PROPS avProps;
                 (pMFrame as IMFrame).FrameAVPropsGet(out avProps);
+                int numberOfChannels = avProps.audProps.nChannels;
+                float[] outputChannelsVUmeterArr = avProps.ancData.audOutput.arrVUMeter;
+                float[] outputChannelsRMS = avProps.ancData.audOutput.arrRMS;
+                float[] outputChannelsVUPeaks = avProps.ancData.audOutput.arrVUPeaks;
+               
+                for (int i = 0; i < numberOfChannels; i++)
+                {
+                    // Get the VU level value for the current audio channel
+                    if (outputChannelsVUPeaks[i] > audioVuMax) //find MaxVu
+                        audioVuMax = outputChannelsVUPeaks[i];
+                    if (outputChannelsVUmeterArr[i] < audioVuMin) //find MinVu
+                        audioVuMin = outputChannelsVUmeterArr[i];
+
+                    if (outputChannelsVUmeterArr[i] > audioVuMin)
+                    {
+                        if (_audioLoudCount == 0) {
+                            audioLoudRange.Add(new float[2] { (float)(frameCount - 1), 0 }); //index , value
+
+
+                                }
+                        _audioLoudCount++;
+                    }
+                    else if (! (outputChannelsVUmeterArr[i] > audioVuMin) && _audioLoudCount!=0)
+                        audioLoudRange[index][1] =  _audioLoudCount }); //index , value
+
+                    //if(outputChannelsVUmeterArr[i] < -90)
+                    //info.audio
+                    //Console.WriteLine("Audio output " + i + "Has Vulume = " + outputChannelsVUmeterArr[i]);
+                    //Console.WriteLine("Audio Peak " + i + "Has Vulume = " + outputChannelsVUPeaks[i]);
+                    //Console.WriteLine("Audio RMS " + i + "Has Vulume = " + outputChannelsRMS[i]);
+
+                }
+                //avProps.ancData.audOriginal.
                 int frameWidth = avProps.vidProps.nWidth;
                 int frameHeight = Math.Abs(avProps.vidProps.nHeight);
                 int pcbSize;
