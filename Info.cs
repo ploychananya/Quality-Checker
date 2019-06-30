@@ -37,7 +37,9 @@ namespace Qualıty_Checker
         public float peak_volume;
         public float min_volume;
 
-        public byte freez_Ththreshold;
+        public byte freez_threshold;
+        public float volume_max_threshold;
+        public float volume_min_threshold;
 
         //public List<Vidio> video = new Vidio[video_tracks];
         //public Audio[] audio= new Audio[audio_tracks];

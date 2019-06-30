@@ -35,6 +35,8 @@ namespace Qualıty_Checker
         public double frameRate;
         public LoudVolume ObjLoud = new LoudVolume();
         public SilenceVolume ObjSilence = new SilenceVolume();
+        SilenceVolume ObjSilence_;
+        LoudVolume ObjLoud_;
 
 
         public int _freezFramesCount = 0;
@@ -50,7 +52,7 @@ namespace Qualıty_Checker
         public float audioVuMax = -90;
         public float audioVuMin = 0;
         public float audioMaxthreshold = -20; // more than this very lound
-        public float audioMinthreshold = -70; // less than this mean silence
+        public float audioMinthreshold = -30; // less than this mean silence
 
         public Medialook(string filePath, Info infoFromAnalyze, string reportName)
         {
@@ -58,7 +60,9 @@ namespace Qualıty_Checker
             info = infoFromAnalyze;
             TryToOpenFile(filePath);
             frameRate = info.video[0].codec_frame_rate;
-            info.freez_Ththreshold = threshold;
+            info.freez_threshold = threshold;
+            info.volume_max_threshold = audioMaxthreshold;
+            info.volume_min_threshold = audioMinthreshold;
         }
         public void TryToOpenFile(string pathToFile)
         {
@@ -157,59 +161,99 @@ namespace Qualıty_Checker
                 float[] outputChannelsRMS = avProps.ancData.audOutput.arrRMS;
                 float[] outputChannelsVUPeaks = avProps.ancData.audOutput.arrVUPeaks;
 
+                int entrance_count = 0;
                 for (int i = 0; i < numberOfChannels; i++)
                 {
+                    
                     // Get the VU level value for the current audio channel
                     if (outputChannelsVUPeaks[i] > audioVuMax) //find MaxVu
                         audioVuMax = outputChannelsVUPeaks[i];
                     if (outputChannelsVUmeterArr[i] < audioVuMin) //find MinVu
                         audioVuMin = outputChannelsVUmeterArr[i];
 
-                    if (outputChannelsVUmeterArr[i] > audioMaxthreshold)//loud
+                    if (outputChannelsVUmeterArr[i] > audioMaxthreshold && entrance_count == 0)//loud
                     {
                         if (_audioLoudCount == 0) //add first index
                         {
                             if (_audioSilenceCount != 0)
                             {//if silene frame in previous frame add Silencecount to the list 
-                                audioSilenRange[index_silen][1] = (_audioSilenceCount + audioSilenRange[index_silen][0] - 1);//add frame count to audioSilenceRange
+                                //Console.WriteLine("Silence frame total"+ (_audioSilenceCount + audioSilenRange[index_silen][0] - 1));
+                                audioSilenRange[index_silen][1] = ((_audioSilenceCount + audioSilenRange[index_silen][0]) - 1);//add frame count to audioSilenceRange
                                 _audioSilenceCount = 0;
                                 index_silen++;
                             }
 
-                            audioLoudRange.Add(new int[2] { (frameCount - 1), 0 }); //index , value
-                            
-                            //index_loud++;
-
+                            audioLoudRange.Add(new int[2]); //index , value
+                            audioLoudRange[index_loud][0] =  (frameCount - 1);
 
                         }
                         _audioLoudCount++;
+                        entrance_count++;
+                        //break;
                     }
-                    else if (outputChannelsVUmeterArr[i] < audioMinthreshold && _audioLoudCount != 0)
+                    else if (outputChannelsVUmeterArr[i] < audioMinthreshold && entrance_count == 0)
                     {
                         if (_audioSilenceCount == 0) //add first index
                         {
                             if (_audioLoudCount != 0)
                             {//if silene frame in previous frame add Silencecount to the list 
-                                audioLoudRange[index_loud][1] = (_audioLoudCount+audioLoudRange[index_loud][0]-1);
+                                Console.WriteLine("Loud frame total" + (_audioLoudCount + audioLoudRange[index_loud][0] - 1));
+                                audioLoudRange[index_loud][1] = ((_audioLoudCount+audioLoudRange[index_loud][0])-1);
                                 _audioLoudCount = 0;
                                 index_loud++;
                             }
                                                         //add frame count to audioSilenceRange
-                            audioSilenRange.Add(new int[2] { (frameCount - 1), 0 }); //index , value
+                            audioSilenRange.Add(new int[2]); //index , value
+                            audioSilenRange[index_silen][0] = (frameCount - 1);
                             //index_silen++;
 
 
                         }
                         _audioSilenceCount ++;
+                        entrance_count++;
+                        //break;
                     }
-                    //else do nothing
-                    //audioLoudRange[index][1] = _audioLoudCount }); //index , value
+                    else if(entrance_count == 0)
+                    {
+   
+                        if (_audioLoudCount != 0)
+                        {//if silene frame in previous frame add Silencecount to the list 
+                            //Console.WriteLine("Loud frame total" + (_audioLoudCount + audioLoudRange[index_loud][0] - 1));
+                            audioLoudRange[index_loud][1] = ((_audioLoudCount + audioLoudRange[index_loud][0]) - 1);
+                            _audioLoudCount = 0;
+                            index_loud++;
+                            //entrance_count++;
+                        }else if (_audioSilenceCount != 0)
+                        {
+                            //Console.WriteLine("Silence frame total" + (_audioSilenceCount + audioSilenRange[index_silen][0] - 1));
+                            audioSilenRange[index_silen][1] = ((_audioSilenceCount + audioSilenRange[index_silen][0]) - 1);//add frame count to audioSilenceRange
+                            _audioSilenceCount = 0;
+                            index_silen++;
+                            ///entrance_count++;
+                        }
+                        entrance_count++;
+                    }
 
-                    //if(outputChannelsVUmeterArr[i] < -90)
-                    //info.audio
-                    //Console.WriteLine("Audio output " + i + "Has Vulume = " + outputChannelsVUmeterArr[i]);
-                    //Console.WriteLine("Audio Peak " + i + "Has Vulume = " + outputChannelsVUPeaks[i]);
-                    //Console.WriteLine("Audio RMS " + i + "Has Vulume = " + outputChannelsRMS[i]);
+                    if (frameCount == nb_frames )
+                    {
+                
+                        if (_audioLoudCount != 0)
+                        {//if silene frame in previous frame add Silencecount to the list 
+                            //Console.WriteLine("Loud frame total" + (_audioLoudCount + audioLoudRange[index_loud][0] - 1));
+                            audioLoudRange[index_loud][1] = ((_audioLoudCount + audioLoudRange[index_loud][0]) - 1);
+                            _audioLoudCount = 0;
+                            index_loud++;
+                        }
+                        else if (_audioSilenceCount != 0)
+                        {
+                            //Console.WriteLine("Silence frame total" + (_audioSilenceCount + audioSilenRange[index_silen][0] - 1));
+                            audioSilenRange[index_silen][1] = ((_audioSilenceCount + audioSilenRange[index_silen][0]) - 1);//add frame count to audioSilenceRange
+                            _audioSilenceCount = 0;
+                            index_silen++;
+                        }
+                        
+                    }
+                 
                 }
 
                     //avProps.ancData.audOriginal.
@@ -261,7 +305,8 @@ namespace Qualıty_Checker
                     }
                 }
             else{
-                    InsertVolumeInfo(info, audioLoudRange, ObjLoud);
+                    InsertVolumeInfo(info, audioLoudRange, "loud");
+                    InsertVolumeInfo(info, audioSilenRange, "silence");
                     InsertFreezFrameInfo(info, startFreez, freezTotal);
                     info.peak_volume = audioVuMax;
                     info.min_volume = audioVuMin; //insert volume info
@@ -285,32 +330,36 @@ namespace Qualıty_Checker
             {
                 ObjFreezFrame = new FreezFrame();
                 info.freezframe.Add(ObjFreezFrame); //if not it will clone same values
-                info.freezframe[i].start_frame = startFreez[i];
+                info.freezframe[i].start_frame = startFreez[i]; 
                 info.freezframe[i].final_frame = ((int)(freezTotal[i]) + (int)(startFreez[i])) - 1;
                 //Console.WriteLine("Start at Frame : " + startFreez[i] + "   *****************    To Frame : " + (((int)(freezTotal[i]) + (int)(startFreez[i])) - 1) + " **********  Total(s) : " + (int)(freezTotal[i]) + "   Frame(s)");  
             }
         }
 
-        public void InsertVolumeInfo(Info info, List<int[]> Volume, Object c)
+        public void InsertVolumeInfo(Info info, List<int[]> Volume, string c)
         {
             for (int i = 0; i < Volume.Count; i++)
             {
-                //LoudVolume ObjLoud = new LoudVolume();
-                //SilenceVolume ObjSilence = new SilenceVolume();
-                if (c.Equals(ObjSilence))
+                
+                
+                if (c=="silence")
                 {
-                    info.silence.Add(ObjSilence); //if not it will clone same values
+                    ObjSilence_ = new SilenceVolume();
+                    info.silence.Add(ObjSilence_); //if not it will clone same values
                     info.silence[i].start_frame = Volume[i][0];
+                    //Console.WriteLine("Silence final frame = " + Volume[i][1]);
                     info.silence[i].final_frame = Volume[i][1];
-                    info.silence[i].duration_secs = (Volume[i][1] - Volume[i][0] + 1) * frameRate; 
+                    info.silence[i].duration_secs = Math.Abs((Volume[i][1] - Volume[i][0] + 1) / frameRate); 
 
                 }
-                else if (c.Equals(ObjLoud))
+                else if (c=="loud")
                 {
-                    info.loudness.Add(ObjLoud); //if not it will clone same values
+                    ObjLoud_ = new LoudVolume();
+                    info.loudness.Add(ObjLoud_); //if not it will clone same values
                     info.loudness[i].start_frame = Volume[i][0];
+                    //Console.WriteLine("Loud final frame = " + Volume[i][1]);
                     info.loudness[i].final_frame = Volume[i][1];
-                    info.loudness[i].duration_secs = (Volume[i][1] - Volume[i][0] + 1) * frameRate;
+                    info.loudness[i].duration_secs = Math.Abs((Volume[i][1] - Volume[i][0] + 1) / frameRate);
 
                 }
             }
