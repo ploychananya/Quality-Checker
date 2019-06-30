@@ -14,11 +14,12 @@ using System.Diagnostics;
 using System.Threading;
 namespace Qualıty_Checker
 {
-    partial class  Medialook : Form
+    partial class Medialook : Form
     {
         Analyze analyze = new Analyze();
         Lib lib = new Lib();
         public Info info = new Info();
+        M_AV_PROPS avProps;
         bool _freez = true;
         public MFrame clonedFrame;
         public MFrame previousFrame;
@@ -27,13 +28,20 @@ namespace Qualıty_Checker
         public long framePointerCloned2;
         public List<int> startFreez = new List<int>();
         public List<int> freezTotal = new List<int>();
-        public List<float[]> audioLoudRange = new List<float[]>();
+        public List<int[]> audioLoudRange = new List<int[]>();
+        public List<int[]> audioSilenRange = new List<int[]>();
+        public int index_loud = 0;
+        public int index_silen = 0;
+        public double frameRate;
+        public LoudVolume ObjLoud = new LoudVolume();
+        public SilenceVolume ObjSilence = new SilenceVolume();
+
 
         public int _freezFramesCount = 0;
         public int frameCount = 0; // so start at frame 1
         public byte threshold = 60;
         public FreezFrame ObjFreezFrame;
-        public int index_freezFrameInfo=-1;
+        public int index_freezFrameInfo = -1;
         public string _reportName;
         public int indexFreezInfo = 0;
         public MFileClass m_objReader = new MFileClass();
@@ -49,13 +57,14 @@ namespace Qualıty_Checker
             _reportName = reportName;
             info = infoFromAnalyze;
             TryToOpenFile(filePath);
+            frameRate = info.video[0].codec_frame_rate;
             info.freez_Ththreshold = threshold;
         }
         public void TryToOpenFile(string pathToFile)
         {
             try
             {
-                
+
                 m_objReader.FileNameSet(pathToFile, "loop=true");
                 m_objReader.PropsSet("object::on_frame.sync", "true");
                 m_objReader.PropsSet("object::on_frame.data", "true");
@@ -64,9 +73,9 @@ namespace Qualıty_Checker
             }
             catch (Exception ex)
             {
-                MessageBox.Show(  pathToFile + Environment.NewLine + ex.Message);
+                MessageBox.Show(pathToFile + Environment.NewLine + ex.Message);
                 return;
-            }  
+            }
         }
         unsafe byte GetPixelValue(uint* startOfFrame, int width, int x, int y) // 100 pıxel 
         {
@@ -84,7 +93,7 @@ namespace Qualıty_Checker
             *blue = Value;
             *green = Value;
             *red = Value;
-        }
+        }          
         /*
         private float[] kernel =
         {
@@ -102,6 +111,7 @@ namespace Qualıty_Checker
 
         };
         private int _audioLoudCount;
+        private int _audioSilenceCount;
 
         private float GetKernelValue(int x, int y)
         {
@@ -139,16 +149,14 @@ namespace Qualıty_Checker
         {
             frameCount++;
             int nb_frames = (int)(info.duration * info.video[0].codec_frame_rate);
-            if (frameCount<=nb_frames) {
-
-                
-                M_AV_PROPS avProps;
+            if (frameCount <= nb_frames) {
+                //M_AV_PROPS avProps;
                 (pMFrame as IMFrame).FrameAVPropsGet(out avProps);
                 int numberOfChannels = avProps.audProps.nChannels;
                 float[] outputChannelsVUmeterArr = avProps.ancData.audOutput.arrVUMeter;
                 float[] outputChannelsRMS = avProps.ancData.audOutput.arrRMS;
                 float[] outputChannelsVUPeaks = avProps.ancData.audOutput.arrVUPeaks;
-               
+
                 for (int i = 0; i < numberOfChannels; i++)
                 {
                     // Get the VU level value for the current audio channel
@@ -157,91 +165,120 @@ namespace Qualıty_Checker
                     if (outputChannelsVUmeterArr[i] < audioVuMin) //find MinVu
                         audioVuMin = outputChannelsVUmeterArr[i];
 
-                    if (outputChannelsVUmeterArr[i] > audioVuMin)
+                    if (outputChannelsVUmeterArr[i] > audioMaxthreshold)//loud
                     {
-                        if (_audioLoudCount == 0) {
-                            audioLoudRange.Add(new float[2] { (float)(frameCount - 1), 0 }); //index , value
+                        if (_audioLoudCount == 0) //add first index
+                        {
+                            if (_audioSilenceCount != 0)
+                            {//if silene frame in previous frame add Silencecount to the list 
+                                audioSilenRange[index_silen][1] = (_audioSilenceCount + audioSilenRange[index_silen][0] - 1);//add frame count to audioSilenceRange
+                                _audioSilenceCount = 0;
+                                index_silen++;
+                            }
+
+                            audioLoudRange.Add(new int[2] { (frameCount - 1), 0 }); //index , value
+                            
+                            //index_loud++;
 
 
-                                }
+                        }
                         _audioLoudCount++;
                     }
-                    else if (! (outputChannelsVUmeterArr[i] > audioVuMin) && _audioLoudCount!=0)
-                        audioLoudRange[index][1] =  _audioLoudCount }); //index , value
+                    else if (outputChannelsVUmeterArr[i] < audioMinthreshold && _audioLoudCount != 0)
+                    {
+                        if (_audioSilenceCount == 0) //add first index
+                        {
+                            if (_audioLoudCount != 0)
+                            {//if silene frame in previous frame add Silencecount to the list 
+                                audioLoudRange[index_loud][1] = (_audioLoudCount+audioLoudRange[index_loud][0]-1);
+                                _audioLoudCount = 0;
+                                index_loud++;
+                            }
+                                                        //add frame count to audioSilenceRange
+                            audioSilenRange.Add(new int[2] { (frameCount - 1), 0 }); //index , value
+                            //index_silen++;
+
+
+                        }
+                        _audioSilenceCount ++;
+                    }
+                    //else do nothing
+                    //audioLoudRange[index][1] = _audioLoudCount }); //index , value
 
                     //if(outputChannelsVUmeterArr[i] < -90)
                     //info.audio
                     //Console.WriteLine("Audio output " + i + "Has Vulume = " + outputChannelsVUmeterArr[i]);
                     //Console.WriteLine("Audio Peak " + i + "Has Vulume = " + outputChannelsVUPeaks[i]);
                     //Console.WriteLine("Audio RMS " + i + "Has Vulume = " + outputChannelsRMS[i]);
-
                 }
-                //avProps.ancData.audOriginal.
-                int frameWidth = avProps.vidProps.nWidth;
-                int frameHeight = Math.Abs(avProps.vidProps.nHeight);
-                int pcbSize;
-                long currentFrameFramePointer;
-                MFrame currentFrame; 
-                (pMFrame as IMFrame).FrameClone(out currentFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32);
-                currentFrame.FrameVideoGetBytes(out pcbSize, out currentFrameFramePointer);
-                
-                // FREEZ FRAME DETECTION
-                unsafe
-                {
-                    GrayScaleFrame(currentFrameFramePointer, frameWidth, frameHeight);
-                    if (previousFrame == null)
+
+                    //avProps.ancData.audOriginal.
+                    int frameWidth = avProps.vidProps.nWidth;
+                    int frameHeight = Math.Abs(avProps.vidProps.nHeight);
+                    int pcbSize;
+                    long currentFrameFramePointer;
+                    MFrame currentFrame;
+                    (pMFrame as IMFrame).FrameClone(out currentFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32);
+                    currentFrame.FrameVideoGetBytes(out pcbSize, out currentFrameFramePointer);
+
+                    // FREEZ FRAME DETECTION
+                    unsafe
                     {
-                        (currentFrame as IMFrame).FrameClone(out previousFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //set gray and use it in clone
-                        Marshal.ReleaseComObject(pMFrame);
-                        Marshal.ReleaseComObject(currentFrame);
-                        GC.Collect();
-                        return;
-                    }
-                    previousFrame.FrameVideoGetBytes(out pcbSize, out previousFrameFramePointer);
-                    _freez = true;
-                    for (int y = 0; y < frameHeight; y++)
-                    {
-                        for (int x = 0; x < frameWidth; x++)
+                        GrayScaleFrame(currentFrameFramePointer, frameWidth, frameHeight);
+                        if (previousFrame == null)
                         {
-                            _freez = ComparePixel(currentFrameFramePointer, previousFrameFramePointer,threshold, frameWidth,x,y);
-                            if ( !_freez || frameCount == nb_frames)
-                            {
-                                if (_freezFramesCount != 0) freezTotal.Add(_freezFramesCount);
-                                _freezFramesCount = 0;
-                                break;
-                            }
+                            (currentFrame as IMFrame).FrameClone(out previousFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //set gray and use it in clone
+                            Marshal.ReleaseComObject(pMFrame);
+                            Marshal.ReleaseComObject(currentFrame);
+                            GC.Collect();
+                            return;
                         }
-                        if (!_freez) break;
+                        previousFrame.FrameVideoGetBytes(out pcbSize, out previousFrameFramePointer);
+                        _freez = true;
+                        for (int y = 0; y < frameHeight; y++)
+                        {
+                            for (int x = 0; x < frameWidth; x++)
+                            {
+                                _freez = ComparePixel(currentFrameFramePointer, previousFrameFramePointer, threshold, frameWidth, x, y);
+                                if (!_freez || frameCount == nb_frames)
+                                {
+                                    if (_freezFramesCount != 0) freezTotal.Add(_freezFramesCount);
+                                    _freezFramesCount = 0;
+                                    break;
+                                }
+                            }
+                            if (!_freez) break;
+                        }
+                        if (_freez)
+                        {
+                            if (_freezFramesCount == 0) startFreez.Add(frameCount - 1);
+                            _freezFramesCount++;
+                        }
+                        Marshal.ReleaseComObject(previousFrame);
+                        (currentFrame as IMFrame).FrameClone(out previousFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //swap clon2 to clone 1
+                        Marshal.ReleaseComObject(currentFrame);
+                        Marshal.ReleaseComObject(pMFrame);
                     }
-                    if (_freez)
-                    {
-                        if (_freezFramesCount == 0) startFreez.Add(frameCount - 1);
-                        _freezFramesCount++;
-                    }
-                    Marshal.ReleaseComObject(previousFrame);
-                    (currentFrame as IMFrame).FrameClone(out previousFrame, eMFrameClone.eMFC_Full_ForceCPU, eMFCC.eMFCC_ARGB32); //swap clon2 to clone 1
-                    Marshal.ReleaseComObject(currentFrame);
-                    Marshal.ReleaseComObject(pMFrame);
                 }
-            }
-            else
-            {
-                InsertFreezFrameInfo(info, startFreez, freezTotal);
-              
-                System.Xml.Serialization.XmlSerializer writer =
-                new System.Xml.Serialization.XmlSerializer(typeof(Info));
-                var path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "//" + _reportName +".xml";
-                System.IO.FileStream file = System.IO.File.Create(path);
-                writer.Serialize(file, info);
-                file.Close();
+            else{
+                    InsertVolumeInfo(info, audioLoudRange, ObjLoud);
+                    InsertFreezFrameInfo(info, startFreez, freezTotal);
+                    info.peak_volume = audioVuMax;
+                    info.min_volume = audioVuMin; //insert volume info
 
-                frameCount = 0;
-                startFreez.Clear();
-                freezTotal.Clear();
-                Application.ExitThread();
-            }
+                    System.Xml.Serialization.XmlSerializer writer =
+                    new System.Xml.Serialization.XmlSerializer(typeof(Info));
+                    var path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "//" + _reportName + ".xml";
+                    System.IO.FileStream file = System.IO.File.Create(path);
+                    writer.Serialize(file, info);
+                    file.Close();
+
+                    frameCount = 0;
+                    startFreez.Clear();
+                    freezTotal.Clear();
+                    Application.ExitThread();
+                }
         }
-
         public void InsertFreezFrameInfo(Info info,List<int> startFreez,List<int> freezTotal)
         {
             for (int i = 0; i < freezTotal.Count; i++)
@@ -253,7 +290,32 @@ namespace Qualıty_Checker
                 //Console.WriteLine("Start at Frame : " + startFreez[i] + "   *****************    To Frame : " + (((int)(freezTotal[i]) + (int)(startFreez[i])) - 1) + " **********  Total(s) : " + (int)(freezTotal[i]) + "   Frame(s)");  
             }
         }
-        public bool ComparePixel(long currentFrameFramePointer, long previousFrameFramePointer,int threshold, int frameWidth, int x, int y)
+
+        public void InsertVolumeInfo(Info info, List<int[]> Volume, Object c)
+        {
+            for (int i = 0; i < Volume.Count; i++)
+            {
+                //LoudVolume ObjLoud = new LoudVolume();
+                //SilenceVolume ObjSilence = new SilenceVolume();
+                if (c.Equals(ObjSilence))
+                {
+                    info.silence.Add(ObjSilence); //if not it will clone same values
+                    info.silence[i].start_frame = Volume[i][0];
+                    info.silence[i].final_frame = Volume[i][1];
+                    info.silence[i].duration_secs = (Volume[i][1] - Volume[i][0] + 1) * frameRate; 
+
+                }
+                else if (c.Equals(ObjLoud))
+                {
+                    info.loudness.Add(ObjLoud); //if not it will clone same values
+                    info.loudness[i].start_frame = Volume[i][0];
+                    info.loudness[i].final_frame = Volume[i][1];
+                    info.loudness[i].duration_secs = (Volume[i][1] - Volume[i][0] + 1) * frameRate;
+
+                }
+            }
+        }
+            public bool ComparePixel(long currentFrameFramePointer, long previousFrameFramePointer,int threshold, int frameWidth, int x, int y)
         {
             unsafe
             {
